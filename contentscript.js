@@ -1,14 +1,5 @@
 //Nuseir Yassin - Facebook Hackathon 2013. 
 
-var dictionary = [
-    "thank&nbsp;you for your email",
-    "looking forward to hearing back soon",
-    "hope you had a good day",
-    "have a safe flight",
-    "test me babe",
-    "another test",
-    "haha tests",
-]
 
 //GLOBAL VARIABLES
 var phrases = [];
@@ -24,8 +15,19 @@ var node_location = 0;
 
 var shortcutsArray = [
     "@date",
-    "@myname"
+    "@myname",
+    "@tftc"
 ]
+
+// chrome.extension.sendRequest({
+//     type: "popup_var",  In my extensions, because I could often be different types of reqeusts, I use a type variable to identify them 
+//     my_variable: dictionary
+
+//     /* Whatever variable you are trying to send */
+// });
+
+
+
 $(new_elem).bind('keydown',function(e) {
         var activeEl = document.activeElement;
         var popup = document.getElementById("nuseir")
@@ -80,6 +82,7 @@ $(new_elem).bind('keyup',function(e) {
         var popup = document.getElementById("nuseir")
 
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
+            
 
             if(activeEl.innerText != "") {
 
@@ -160,23 +163,29 @@ function analyzeIt(string_passed) {
 }
 function processIt(string_passed, elem, phrases) {
     phrases = [];
-
-    //ignore spaces
-    if(/\s+$/.test(string_passed)) {
-        string_passed = string_passed.substr(0, string_passed.length -1);    
-    }
-    dictionary.forEach(function(phrase) {
-        if(phrase.toLowerCase().indexOf(string_passed.toLowerCase()) == 0) {
-            if(phrase.length == string_passed.length) {
-                //do nothing
-            } else {
-                general_location = string_inputed.toLowerCase().lastIndexOf(string_passed);
-                // console.log("GENERAL LOCATION" + "  " + general_location);
-                phrases.push(phrase);    
-            }
+    chrome.extension.sendRequest({method: "getLocalStorage", key: "array"}, function(response) {
+        console.log("LAODED MY SHIT BACK")
+        var dictionary = response.array.split(",")
+        console.log(dictionary)
+        
+        //ignore spaces
+        if(/\s+$/.test(string_passed)) {
+            string_passed = string_passed.substr(0, string_passed.length -1);    
         }
-    })
-    DisplayResults(phrases, elem);
+        dictionary.forEach(function(phrase) {
+            if(phrase.toLowerCase().indexOf(string_passed.toLowerCase()) == 0) {
+                if(phrase.length == string_passed.length) {
+                    //do nothing
+                } else {
+                    general_location = string_inputed.toLowerCase().lastIndexOf(string_passed);
+                    // console.log("GENERAL LOCATION" + "  " + general_location);
+                    phrases.push(phrase);    
+                }
+            }
+        })
+        DisplayResults(phrases, elem);
+
+    }); 
 }
 
 function replaceShortCutWithInfo(analyzed_string, activeEl) {
@@ -194,7 +203,9 @@ function replaceShortCutWithInfo(analyzed_string, activeEl) {
         case "@myname":
             replacement = "Nuseir Yassin";
             break;
-
+        case "@tftc":
+            replacement = "Too frat to care";
+            break;
     }
 
     if(node_location == 0) {
@@ -243,7 +254,7 @@ function getTextToAppend(full_autocomplete, text_written) {
 }
 
 
-
+getTextToAppend
 
 
 
