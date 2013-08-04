@@ -149,8 +149,17 @@ function analyzeIt(string_passed) {
     var split_string =string_passed.split(" ");
     var popup = document.getElementById("nuseir")
     if(!popup) {
+        console.log(string_passed)
+        var count = string_passed.match(/@/g);
+        if(count.length == 2) {
+            console.log("FOUND TWO")
+            var first = string_passed.indexOf('@');
+            var last = string_passed.lastIndexOf('@');
+
+            searchWolframAlpha(string_passed.substring(first + 1, last));
+        }
         var last_word = split_string[split_string.length - 1]
-        console.log(last_word)
+
         return last_word;    
     } else {
         var general = string_passed.substring(general_location);
@@ -158,6 +167,36 @@ function analyzeIt(string_passed) {
         return general;
     }
     
+
+}
+
+function searchWolframAlpha(query_string) {
+    var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
+    url = url.replace("#query#", query_string);
+    console.log(url)
+    $.ajax(
+        
+        {
+        
+        type: "GET",
+        
+        cache: false,
+        
+        url: url,
+        
+        dataType: "xml",
+        
+        contentType: "text/html",
+        
+        success: function(data){
+            console.log(" I GOT A RESPONSE!")
+            console.log(data.queryResult)
+        },
+        error: function(data) {
+
+        }
+        
+    }); //end of $.ajax
 
 }
 function processIt(string_passed, elem, phrases) {
