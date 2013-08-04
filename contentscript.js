@@ -23,48 +23,50 @@ var node = [];
 var string_inputed = "";
 var chosen = "";
 var general_location = 0;
+var node_value = "";
+var node_location = 0;
 $(new_elem).bind('keydown',function(e) {
         var activeEl = document.activeElement;
-
         var popup = document.getElementById("nuseir")
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") { 
-            console.log(string_inputed)
+
             if(popup) {
+
+                //IF ENTER
                 if(e.keyCode == 13) {
-                    
-                        e.preventDefault();
-                        // $("ul#options li").each(function() { console.log($(this)) });
-                        console.log("ultimate")
-                        console.log(chosen)
-                        // console.log($('#nuseir ul').children[1]);
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  activeEl.firstChild.nodeValue.substr(general_location, activeEl.firstChild.nodeValue.length -1 ))
+                    e.preventDefault();
+                    console.log(general_location)
+                    if(general_location != 0) {
+                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length -1 ))    
+                    } else {
+                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length))
+                    }
+                    if(node_location == 0) {
                         activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue + text;
-                        activeEl.removeChild(popup)
-                        general_location=0;
+                    } else {
+                        activeEl.childNodes[node_location].innerText = node_value + text;    
+                    }
+                    activeEl.removeChild(popup)
+                    general_location = 0;
                 }
+
+                //IF ARROW UP
                 if(e.keyCode == 38) {
-                    // e.preventDefault();
                 if(chosen === "") {
                     chosen = 0;
                 } else if(chosen > 0) {
                     chosen--;            
                 }
-
-                // $('#nuseir ul')[0].children[chosen].style.backgroundColor = "green"
                 return false;
                 }
 
+                //IF ARROW DOWN
                 if(e.keyCode == 40) {
-                    // e.preventDefault();
-                    // console.log($('li#auto_options:eq(0)')[0].innerText)
                     if(chosen === "") {
                         chosen = 0;
                     } else if((chosen+1) < $('#nuseir ul')[0].children.length) {
                         chosen++; 
                     }
-                    // $('li#auto_options').removeClass('selected');
-                    console.log("counter")
-                    // $('#nuseir ul')[0].children[chosen].style.backgroundColor = "green"
                     return false;
                 }
         }   
@@ -80,43 +82,65 @@ $(new_elem).bind('keyup',function(e) {
 
             if(activeEl.innerText != "") {
 
-                // if(popup) {
-                //     node = activeEl.lastChild.previousSibling
-                //     if(!node) {
-                //         node = activeEl.lastChild.previousSibling.previousSibling
-                //     }
-                //     console.log(node)
-                //     string_inputed = node.nodeValue;
-                //     console.log("pop up is not here")
-                // } else {
-                //     console.log("POP UP IS NOT HERE")
-                //     node = activeEl.lastChild
-                //     if(node.nodeValue) {
-                //         string_inputed = node.nodeValue;    
-                //     } else {
-                //         string_inputed = node.innerText;    
-                //     }
-                    
-                // }
                 var all_lines = activeEl.innerText.split('\n')
-                
-                node = activeEl.firstChild
-                string_inputed = activeEl.firstChild.nodeValue;
-                // string_inputed = (node.nodeValue) ? node.innerText : node.innerText;
-                console.log(string_inputed)
+
+                var lastNode = findLastDiv(all_lines, activeEl)
+                node = lastNode;
+                if(!node.nodeValue) {
+                    node_value = node.innerText;
+                } else {
+                    node_value = node.nodeValue
+                }
+                string_inputed = lastNode.innerHTML;
+                if(!string_inputed) {
+                    string_inputed = activeEl.firstChild.nodeValue;
+                    node_value = activeEl.firstChild.nodeValue;
+                }
                 var analyzed_string = analyzeIt(string_inputed);
                 processIt(analyzed_string, activeEl, phrases)        
             }
         }   
 })
+
+function findLastDiv(all_lines, activeEl) {
+    var offset;
+    var popup = document.getElementById("nuseir")
+    console.log(all_lines);
+
+
+    if(popup) {
+        offset = $('#nuseir ul')[0].children.length
+
+    } else {
+        offset = 0;
+    }
+    console.log(offset)
+    if(all_lines.length > 2 + offset) {
+        // console.log(activeEl.childNodes[all_lines.length - 2].innerText)
+        if(activeEl.childNodes[all_lines.length - 2 - offset]) {
+            node_location = all_lines.length - 2 - offset;
+            return activeEl.childNodes[node_location]        
+        }
+        
+    } else {
+        console.log("FIRST LINE!!!!")
+        node_location = all_lines.length - 1 - offset;
+        console.log("NODE LOCATION " + node_location)
+        console.log(activeEl.firstChild.nodeValue)
+
+        return activeEl.firstChild.nodeValue;
+    }
+    
+    
+}
 function analyzeIt(string_passed) {
-    console.log(string_passed)
+    // console.log(string_passed)
     var split_string =string_passed.split(" ");
     var popup = document.getElementById("nuseir")
     if(!popup) {
         var last_word = split_string[split_string.length - 1]
-        console.log("LAST WORD IS")
-        console.log(last_word)
+        // console.log("LAST WORD IS")
+        // console.log(last_word)
         return last_word;    
     } else {
         var general = string_passed.substring(general_location);
@@ -131,7 +155,7 @@ function processIt(string_passed, elem, phrases) {
 
     //ignore spaces
     if(/\s+$/.test(string_passed)) {
-        console.log("HAS SPACE IN IT")
+        // console.log("HAS SPACE IN IT")
         string_passed = string_passed.substr(0, string_passed.length -1);    
     }
     dictionary.forEach(function(phrase) {
@@ -140,7 +164,7 @@ function processIt(string_passed, elem, phrases) {
                 //do nothing
             } else {
                 general_location = string_inputed.toLowerCase().lastIndexOf(string_passed);
-                console.log("GENERAL LOCATION" + "  " + general_location);
+                // console.log("GENERAL LOCATION" + "  " + general_location);
                 phrases.push(phrase);    
             }
         }
@@ -168,6 +192,8 @@ function DisplayResults(results, elem) {
         appendingDiv = appendingDiv + "</ul>"
         domDiv.innerHTML = appendingDiv;
         
+        // var  = document.getElementsByClassName("stopButton")[0];
+
         elem.appendChild(domDiv)    
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
         $('#options li').bind('click', function() {
@@ -178,7 +204,7 @@ function DisplayResults(results, elem) {
     }
 }
 function getTextToAppend(full_autocomplete, text_written) {
-    return full_autocomplete.slice(text_written.length)
+    return full_autocomplete.toLowerCase().slice(text_written.length)
 }
 
 
