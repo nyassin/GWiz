@@ -150,8 +150,7 @@ function analyzeIt(string_passed) {
     var popup = document.getElementById("nuseir")
     if(!popup) {
         var last_word = split_string[split_string.length - 1]
-        // console.log("LAST WORD IS")
-        // console.log(last_word)
+        console.log(last_word)
         return last_word;    
     } else {
         var general = string_passed.substring(general_location);
@@ -253,8 +252,6 @@ function getTextToAppend(full_autocomplete, text_written) {
 
 }
 
-
-getTextToAppend
 
 
 
