@@ -266,7 +266,7 @@ function replaceShortCutWithInfo(analyzed_string, activeEl) {
             replacement = "Too frat to care";
             break;
         case "@wsig":
-            replacement = "Personal finance advisor. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
+            replacement = "Personal Financier and Professional Philanthropist. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
             break;
     }
 
