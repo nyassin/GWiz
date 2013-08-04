@@ -10,13 +10,14 @@ var chosen = "";
 var general_location = 0;
 var node_value = "";
 var node_location = 0;
-
-
+var xmldata = "";
+var xmlhttp = "";
 
 var shortcutsArray = [
     "@date",
     "@myname",
-    "@tftc"
+    "@tftc",
+    "@wsig"
 ]
 
 // chrome.extension.sendRequest({
@@ -39,7 +40,7 @@ $(new_elem).bind('keydown',function(e) {
                 if(e.keyCode == 13) {
                     e.preventDefault();
                     console.log(general_location)
-                    if(general_location != 0) {
+                    if(general_location != 0 && general_location != -1) {
                         var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length -1 ))    
                     } else {
                         var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length))
@@ -82,14 +83,13 @@ $(new_elem).bind('keyup',function(e) {
         var popup = document.getElementById("nuseir")
 
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
-            
-
-            if(activeEl.innerText != "") {
-
+            if(e.keyCode != 32) {
+                if(activeEl.innerText != "" || activeEl.innerText != '\n') {
                 var all_lines = activeEl.innerText.split('\n')
 
                 var lastNode = findLastDiv(all_lines, activeEl)
                 node = lastNode;
+                
                 if(!node.nodeValue) {
                     node_value = node.innerText;
                 } else {
@@ -100,63 +100,63 @@ $(new_elem).bind('keyup',function(e) {
                     string_inputed = activeEl.firstChild.nodeValue;
                     node_value = activeEl.firstChild.nodeValue;
                 }
-                var analyzed_string = analyzeIt(string_inputed);
+                var analyzed_string = analyzeIt(string_inputed, activeEl);
                 
-                if($.inArray(analyzed_string, shortcutsArray) !== -1) {
-                    console.log("RESERVED KEYWORD!!!")
-                    replaceShortCutWithInfo(analyzed_string, activeEl);
-                } else {
-                    processIt(analyzed_string, activeEl, phrases)            
+                if(!xmldata) {
+                    if($.inArray(analyzed_string, shortcutsArray) !== -1) {
+                        replaceShortCutWithInfo(analyzed_string, activeEl);
+                    } else {
+                        processIt(analyzed_string, activeEl, phrases)            
+                    }
                 }
-                
             }
+            }
+        
         }   
 })
 
 function findLastDiv(all_lines, activeEl) {
     var offset;
     var popup = document.getElementById("nuseir")
-    console.log(all_lines);
-
-
     if(popup) {
         offset = $('#nuseir ul')[0].children.length
-
     } else {
         offset = 0;
     }
-    console.log(offset)
     if(all_lines.length > 2 + offset) {
-        // console.log(activeEl.childNodes[all_lines.length - 2].innerText)
         if(activeEl.childNodes[all_lines.length - 2 - offset]) {
             node_location = all_lines.length - 2 - offset;
             return activeEl.childNodes[node_location]        
         }
         
     } else {
-        console.log("FIRST LINE!!!!")
+        // console.log("FIRST LINE!!!!")
         node_location = all_lines.length - 1 - offset;
-        console.log("NODE LOCATION " + node_location)
-        console.log(activeEl.firstChild.nodeValue)
+        // console.log("NODE LOCATION " + node_location)
+        // console.log(activeEl.firstChild.nodeValue)
 
         return activeEl.firstChild.nodeValue;
     }
     
     
 }
-function analyzeIt(string_passed) {
+function analyzeIt(string_passed, activeEl) {
     // console.log(string_passed)
     var split_string =string_passed.split(" ");
     var popup = document.getElementById("nuseir")
     if(!popup) {
-        console.log(string_passed)
-        var count = string_passed.match(/@/g);
-        if(count.length == 2) {
-            console.log("FOUND TWO")
-            var first = string_passed.indexOf('@');
-            var last = string_passed.lastIndexOf('@');
+        // console.log(string_passed)
+        var count = [];
+        count = string_passed.match(/@/g);
+        if(count) {
+            if(count.length == 2) {
+                var first = string_passed.indexOf('@');
+                var last = string_passed.lastIndexOf('@');
 
-            searchWolframAlpha(string_passed.substring(first + 1, last));
+                if(!xmlhttp) {
+                    searchWolframAlpha(string_passed, string_passed.substring(first + 1, last), activeEl);
+                }    
+            }
         }
         var last_word = split_string[split_string.length - 1]
 
@@ -170,52 +170,73 @@ function analyzeIt(string_passed) {
 
 }
 
-function searchWolframAlpha(query_string) {
+function searchWolframAlpha(full_string, query_string, activeEl) {
     var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
     url = url.replace("#query#", query_string);
-    console.log(url)
-    $.ajax(
-        
-        {
-        
-        type: "GET",
-        
-        cache: false,
-        
-        url: url,
-        
-        dataType: "xml",
-        
-        contentType: "text/html",
-        
-        success: function(data){
-            console.log(" I GOT A RESPONSE!")
-            console.log(data.queryResult)
-        },
-        error: function(data) {
+    // console.log(url)
+        xmlhttp = new XMLHttpRequest();
+        xmlhttp.open("GET",url,false);  // the third param sets async=false
+        xmlhttp.send();
+        xmldata = xmlhttp.responseXML;
+    var results = "";
+     $(xmldata).find("pod").each(function() {
+
+        if($(this).attr('id') == "Result"){
+            var result = $(this)[0].childNodes[1]
+            var result = $(result).text();
+            // result = result.replace(/<(?:.|\n)*?>/gm, '');
+
+            // console.log(results)
+            DisplayWolframResults(full_string, query_string, result, activeEl)
 
         }
-        
-    }); //end of $.ajax
+     })
+     xmldata = "";
+     xmlhttp = "";
+     
+
+}
+function DisplayWolframResults(full_string, query, result, activeEl) {
+    // console.log(" IMHERE!!")
+
+    // console.log(full_string)
+    // console.log(query)
+    // console.log(result)
+    full_string = full_string.replace("@" + query + "@", result)
+    console.log(full_string)
+
+    // if(node_location == 0) {
+            // activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.replace("@" + query + "@", result);
+    // } else {
+    full_string = full_string.replace(/[\r\n]/g, '');
+    var string_new = full_string.replace("@" + query + "@", result);    
+    
+
+    // console.log(string_new)
+    activeEl.childNodes[node_location].innerText = string_new;
+    console.log(activeEl.childNodes[node_location].innerText)
+    // }
+    // global_response = result;
 
 }
 function processIt(string_passed, elem, phrases) {
     phrases = [];
     chrome.extension.sendRequest({method: "getLocalStorage", key: "array"}, function(response) {
-        console.log("LAODED MY SHIT BACK")
+        // console.log("LAODED MY SHIT BACK")
         var dictionary = response.array.split(",")
-        console.log(dictionary)
+        // console.log(dictionary)
         
         //ignore spaces
         if(/\s+$/.test(string_passed)) {
             string_passed = string_passed.substr(0, string_passed.length -1);    
+
         }
         dictionary.forEach(function(phrase) {
             if(phrase.toLowerCase().indexOf(string_passed.toLowerCase()) == 0) {
                 if(phrase.length == string_passed.length) {
                     //do nothing
                 } else {
-                    general_location = string_inputed.toLowerCase().lastIndexOf(string_passed);
+                    general_location = string_inputed.toLowerCase().lastIndexOf(string_passed.toLowerCase());
                     // console.log("GENERAL LOCATION" + "  " + general_location);
                     phrases.push(phrase);    
                 }
@@ -243,6 +264,9 @@ function replaceShortCutWithInfo(analyzed_string, activeEl) {
             break;
         case "@tftc":
             replacement = "Too frat to care";
+            break;
+        case "@wsig":
+            replacement = "Personal finance advisor. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
             break;
     }
 
@@ -275,8 +299,6 @@ function DisplayResults(results, elem) {
         appendingDiv = appendingDiv + "</ul>"
         domDiv.innerHTML = appendingDiv;
         
-        // var  = document.getElementsByClassName("stopButton")[0];
-
         elem.appendChild(domDiv)    
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
         $('#options li').bind('click', function() {

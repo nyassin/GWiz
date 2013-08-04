@@ -36,8 +36,8 @@ $(document).ready(function() {
 	var elem = document.getElementById('options');
 	var appendingDiv = "";
 	var form = $('#options')
-	form.append("<input type='button' value='Add', class='add'>");
-	form.append("<input type='submit' value='Save options'>");
+	form.append("<input type='button' value='Add', class='add', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
+	form.append("<input type='submit' value='Save options', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
 	mem.forEach(function(saying) {
 		form.append("<li><input type='text', value='" + saying +  "', style='width: 400px;'/> <img src='del.png' width='10' height='10' id='" +  new Date().getTime() + "' class='del'></img></li>")
 	})
@@ -52,7 +52,7 @@ $(document).ready(function() {
 		});
 		localStorage["array"] = new_dic
 		new_dic = [];
-		form.append("<li>YOUR OPTIONS HAEVE BEEN SAVED</li>")
+		form.append("<li>YOUR OPTIONS HAVE BEEN SAVED</li>")
 		return false;	
 	});
 	
