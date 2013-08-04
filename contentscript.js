@@ -11,7 +11,7 @@ var dictionary = [
     "Have a safe flight",
     "test me babe",
     "another test",
-    "haha tests"
+    "haha tests",
 ]
 // var elem =document.activeElement
 // $(elem).keypress(function() {
@@ -22,7 +22,7 @@ var new_elem = document.body
 var node = [];
 var string_inputed = "";
 var chosen = "";
-
+var general_location = 0;
 $(new_elem).bind('keydown',function(e) {
         var activeEl = document.activeElement;
 
@@ -37,9 +37,10 @@ $(new_elem).bind('keydown',function(e) {
                         console.log("ultimate")
                         console.log(chosen)
                         // console.log($('#nuseir ul').children[1]);
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText, activeEl.firstChild.nodeValue)
+                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  activeEl.firstChild.nodeValue.substr(general_location, activeEl.firstChild.nodeValue.length -1 ))
                         activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue + text;
                         activeEl.removeChild(popup)
+                        general_location=0;
                 }
                 if(e.keyCode == 38) {
                     // e.preventDefault();
@@ -97,6 +98,8 @@ $(new_elem).bind('keyup',function(e) {
                 //     }
                     
                 // }
+                var all_lines = activeEl.innerText.split('\n')
+                
                 node = activeEl.firstChild
                 string_inputed = activeEl.firstChild.nodeValue;
                 // string_inputed = (node.nodeValue) ? node.innerText : node.innerText;
@@ -107,21 +110,25 @@ $(new_elem).bind('keyup',function(e) {
         }   
 })
 function analyzeIt(string_passed) {
-    // console.log(string_passed)
-    // var split_string =string_passed.split(" ");
-    // var popup = document.getElementById("nuseir")
-    // if(!popup) {
-        // var last_word = split_string[split_string.length - 1]
-        // return last_word;    
-    // } else {
-        return string_passed;
-    // }
+    console.log(string_passed)
+    var split_string =string_passed.split(" ");
+    var popup = document.getElementById("nuseir")
+    if(!popup) {
+        var last_word = split_string[split_string.length - 1]
+        console.log("LAST WORD IS")
+        console.log(last_word)
+        return last_word;    
+    } else {
+        var general = string_passed.substring(general_location);
+
+        return general;
+    }
     
 
 }
 function processIt(string_passed, elem, phrases) {
     phrases = [];
-    
+
     //ignore spaces
     if(/\s+$/.test(string_passed)) {
         console.log("HAS SPACE IN IT")
@@ -132,7 +139,8 @@ function processIt(string_passed, elem, phrases) {
             if(phrase.length == string_passed.length) {
                 //do nothing
             } else {
-
+                general_location = string_inputed.toLowerCase().lastIndexOf(string_passed);
+                console.log("GENERAL LOCATION" + "  " + general_location);
                 phrases.push(phrase);    
             }
         }
@@ -163,7 +171,7 @@ function DisplayResults(results, elem) {
         elem.appendChild(domDiv)    
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
         $('#options li').bind('click', function() {
-            var text = getTextToAppend($(this).text(), elem.firstChild.nodeValue)
+            var text = getTextToAppend($(this).text(), elem.firstChild.nodeValue.substr(general_location, elem.firstChild.nodeValue.length -1 ))
             node.nodeValue = node.nodeValue + text;
             elem.removeChild(domDiv)
         })
