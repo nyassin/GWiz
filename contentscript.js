@@ -1,22 +1,16 @@
-// Copyright (c) 2010 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+//Nuseir Yassin - Facebook Hackathon 2013. 
 
-var regex = /sandwich/gi;
-// matches = document.body.innerText.match(regex);
 var dictionary = [
-    "Thank&nbsp;you for your email",
-    "Looking forward to hearing back soon",
-    "Hope you had a good day",
-    "Have a safe flight",
+    "thank&nbsp;you for your email",
+    "looking forward to hearing back soon",
+    "hope you had a good day",
+    "have a safe flight",
     "test me babe",
     "another test",
     "haha tests",
 ]
-// var elem =document.activeElement
-// $(elem).keypress(function() {
-//     console.log("KEY PRESSED!")
-// })
+
+//GLOBAL VARIABLES
 var phrases = [];
 var new_elem = document.body
 var node = [];
@@ -25,6 +19,13 @@ var chosen = "";
 var general_location = 0;
 var node_value = "";
 var node_location = 0;
+
+
+
+var shortcutsArray = [
+    "@date",
+    "@myname"
+]
 $(new_elem).bind('keydown',function(e) {
         var activeEl = document.activeElement;
         var popup = document.getElementById("nuseir")
@@ -97,7 +98,14 @@ $(new_elem).bind('keyup',function(e) {
                     node_value = activeEl.firstChild.nodeValue;
                 }
                 var analyzed_string = analyzeIt(string_inputed);
-                processIt(analyzed_string, activeEl, phrases)        
+                
+                if($.inArray(analyzed_string, shortcutsArray) !== -1) {
+                    console.log("RESERVED KEYWORD!!!")
+                    replaceShortCutWithInfo(analyzed_string, activeEl);
+                } else {
+                    processIt(analyzed_string, activeEl, phrases)            
+                }
+                
             }
         }   
 })
@@ -155,7 +163,6 @@ function processIt(string_passed, elem, phrases) {
 
     //ignore spaces
     if(/\s+$/.test(string_passed)) {
-        // console.log("HAS SPACE IN IT")
         string_passed = string_passed.substr(0, string_passed.length -1);    
     }
     dictionary.forEach(function(phrase) {
@@ -172,6 +179,33 @@ function processIt(string_passed, elem, phrases) {
     DisplayResults(phrases, elem);
 }
 
+function replaceShortCutWithInfo(analyzed_string, activeEl) {
+    
+    var replacement;
+    switch(analyzed_string) 
+    {
+        case "@date":
+            replacement = new Date();
+            var day = replacement.getUTCDate();
+            var month = replacement.getMonth();
+            var year = replacement.getFullYear();
+            replacement = month + "/" + day + "/" + year;
+            break;
+        case "@myname":
+            replacement = "Nuseir Yassin";
+            break;
+
+    }
+
+    if(node_location == 0) {
+       var start = activeEl.firstChild.nodeValue.lastIndexOf(analyzed_string)
+       activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.substring(0, start) + " " + replacement;
+    } else {
+        var start = activeEl.childNodes[node_location].innerText.lastIndexOf(analyzed_string)
+        activeEl.childNodes[node_location].innerText = node_value.substring(0, start) + " " + replacement;    
+    }
+
+}
 function DisplayResults(results, elem) {
     var popup = document.getElementById("nuseir")
     if(popup) {
@@ -204,8 +238,11 @@ function DisplayResults(results, elem) {
     }
 }
 function getTextToAppend(full_autocomplete, text_written) {
-    return full_autocomplete.toLowerCase().slice(text_written.length)
+    return full_autocomplete.toLowerCase().slice(text_written.length);
+
 }
+
+
 
 
 
