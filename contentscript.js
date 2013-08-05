@@ -12,7 +12,7 @@ var node_value = "";
 var node_location = 0;
 var xmldata = "";
 var xmlhttp = "";
-
+var CaretMain;
 var shortcutsArray = [
     "@date",
     "@myname",
@@ -37,6 +37,7 @@ $(new_elem).bind('keydown',function(e) {
             if(popup) {
 
                 //IF ENTER
+                console.log(node_value)
                 if(e.keyCode == 13) {
                     e.preventDefault();
                     console.log(general_location)
@@ -45,11 +46,7 @@ $(new_elem).bind('keydown',function(e) {
                     } else {
                         var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length))
                     }
-                    if(node_location == 0) {
-                        activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue + text;
-                    } else {
-                        activeEl.childNodes[node_location].innerText = node_value + text;    
-                    }
+                    node.nodeValue = node.nodeValue + text;
                     activeEl.removeChild(popup)
                     general_location = 0;
                 }
@@ -83,23 +80,16 @@ $(new_elem).bind('keyup',function(e) {
         var popup = document.getElementById("nuseir")
 
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
-            if(e.keyCode != 32) {
-                if(activeEl.innerText != "" || activeEl.innerText != '\n') {
-                var all_lines = activeEl.innerText.split('\n')
 
-                var lastNode = findLastDiv(all_lines, activeEl)
-                node = lastNode;
+            CaretMain =document.getSelection();
+            console.log(CaretMain)
+            
+            if(e.keyCode != 32 && e.keyCode != 38 && e.keyCode != 40) {
+                if(activeEl.innerText != "" || activeEl.innerText != '\n') {
+
+                node = CaretMain.baseNode
+                string_inputed = node.nodeValue;
                 
-                if(!node.nodeValue) {
-                    node_value = node.innerText;
-                } else {
-                    node_value = node.nodeValue
-                }
-                string_inputed = lastNode.innerHTML;
-                if(!string_inputed) {
-                    string_inputed = activeEl.firstChild.nodeValue;
-                    node_value = activeEl.firstChild.nodeValue;
-                }
                 var analyzed_string = analyzeIt(string_inputed, activeEl);
                 
                 if(!xmldata) {
@@ -142,6 +132,12 @@ function findLastDiv(all_lines, activeEl) {
 }
 function analyzeIt(string_passed, activeEl) {
     // console.log(string_passed)
+    if(CaretMain.baseOffset != 0) {
+        var string_passed = string_passed.substring(0, CaretMain.baseOffset)    
+        CaretMain.baseOffset = 1;
+    }
+    
+    console.log(string_passed)
     var split_string =string_passed.split(" ");
     var popup = document.getElementById("nuseir")
     if(!popup) {
