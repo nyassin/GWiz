@@ -6,12 +6,13 @@ var phrases = [];
 var new_elem = document.body
 var node = [];
 var string_inputed = "";
-var chosen = "";
-var general_location = 0;
+var chosen = 0;
+var first_match_index = 0;
 var node_value = "";
 var node_location = 0;
 var xmldata = "";
 var xmlhttp = "";
+var last_word;
 var CaretMain;
 var shortcutsArray = [
     "@date",
@@ -40,35 +41,39 @@ $(new_elem).bind('keydown',function(e) {
                 console.log(node_value)
                 if(e.keyCode == 13) {
                     e.preventDefault();
-                    console.log(general_location)
-                    if(general_location != 0 && general_location != -1) {
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length -1 ))    
+                    console.log("INDEX IS " + first_match_index + " and node value is : " + node.nodeValue)
+                    var amount_to_slice = node.nodeValue.substring(first_match_index, node.nodeValue.length -1 );
+                    console.log(amount_to_slice)
+                    if(first_match_index == 0) {
+
+                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  amount_to_slice)    
                     } else {
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node_value.substr(general_location, node_value.length))
+                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node.nodeValue.substring(first_match_index, node.nodeValue.length -1))
                     }
                     node.nodeValue = node.nodeValue + text;
-                    activeEl.removeChild(popup)
-                    general_location = 0;
+                    node.parentElement.removeChild(popup)
+                    chosen = 0;
+                    first_match_index = 0;
                 }
 
                 //IF ARROW UP
                 if(e.keyCode == 38) {
-                if(chosen === "") {
-                    chosen = 0;
-                } else if(chosen > 0) {
-                    chosen--;            
-                }
-                return false;
-                }
-
-                //IF ARROW DOWN
-                if(e.keyCode == 40) {
-                    if(chosen === "") {
-                        chosen = 0;
-                    } else if((chosen+1) < $('#nuseir ul')[0].children.length) {
-                        chosen++; 
+                    if(chosen > 0) {
+                        chosen--;            
+                    } else {
+                        chosen = $('#nuseir ul')[0].children.length;
                     }
                     return false;
+                }
+                //IF ARROW DOWN
+                if(e.keyCode == 40) {
+                    if((chosen+1) < $('#nuseir ul')[0].children.length) {
+                        chosen++; 
+                    } else {
+                        chosen = 0;
+                    }
+                    return false;
+
                 }
         }   
     }
@@ -84,163 +89,125 @@ $(new_elem).bind('keyup',function(e) {
             CaretMain =document.getSelection();
             console.log(CaretMain)
             
-            if(e.keyCode != 32 && e.keyCode != 38 && e.keyCode != 40) {
-                if(activeEl.innerText != "" || activeEl.innerText != '\n') {
+
+            if(e.keyCode != 32) {
 
                 node = CaretMain.baseNode
                 string_inputed = node.nodeValue;
                 
-                var analyzed_string = analyzeIt(string_inputed, activeEl);
-                
+                var analyzed_string = getLastWord(string_inputed, activeEl);
                 if(!xmldata) {
                     if($.inArray(analyzed_string, shortcutsArray) !== -1) {
                         replaceShortCutWithInfo(analyzed_string, activeEl);
                     } else {
-                        processIt(analyzed_string, activeEl, phrases)            
+
+                        FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
                     }
                 }
-            }
             }
         
         }   
 })
 
-function findLastDiv(all_lines, activeEl) {
-    var offset;
-    var popup = document.getElementById("nuseir")
-    if(popup) {
-        offset = $('#nuseir ul')[0].children.length
-    } else {
-        offset = 0;
-    }
-    if(all_lines.length > 2 + offset) {
-        if(activeEl.childNodes[all_lines.length - 2 - offset]) {
-            node_location = all_lines.length - 2 - offset;
-            return activeEl.childNodes[node_location]        
-        }
-        
-    } else {
-        // console.log("FIRST LINE!!!!")
-        node_location = all_lines.length - 1 - offset;
-        // console.log("NODE LOCATION " + node_location)
-        // console.log(activeEl.firstChild.nodeValue)
-
-        return activeEl.firstChild.nodeValue;
-    }
-    
-    
-}
-function analyzeIt(string_passed, activeEl) {
+function getLastWord(string_passed, activeEl) {
     // console.log(string_passed)
     if(CaretMain.baseOffset != 0) {
         var string_passed = string_passed.substring(0, CaretMain.baseOffset)    
-        CaretMain.baseOffset = 1;
     }
-    
-    console.log(string_passed)
-    var split_string =string_passed.split(" ");
+
     var popup = document.getElementById("nuseir")
-    if(!popup) {
-        // console.log(string_passed)
-        var count = [];
-        count = string_passed.match(/@/g);
-        if(count) {
-            if(count.length == 2) {
-                var first = string_passed.indexOf('@');
-                var last = string_passed.lastIndexOf('@');
-
-                if(!xmlhttp) {
-                    searchWolframAlpha(string_passed, string_passed.substring(first + 1, last), activeEl);
-                }    
-            }
-        }
-        var last_word = split_string[split_string.length - 1]
-
-        return last_word;    
+     
+    if(popup) {
+        var last_phrase = string_passed.substring(first_match_index);
+        return last_phrase;
     } else {
-        var general = string_passed.substring(general_location);
-
-        return general;
+        //return last word
+        if(string_passed) {
+            var split_string =string_passed.split(" ");    
+            var last_word_extracted = split_string[split_string.length - 1]
+            if(last_word_extracted) {
+                last_word = last_word_extracted;
+                return last_word_extracted;
+            } else {
+                activeEl.removeChild(popup)
+                return "";
+            }
+        } else {
+            return "";
+        }
     }
-    
-
 }
 
-function searchWolframAlpha(full_string, query_string, activeEl) {
-    var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
-    url = url.replace("#query#", query_string);
-    // console.log(url)
-        xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET",url,false);  // the third param sets async=false
-        xmlhttp.send();
-        xmldata = xmlhttp.responseXML;
-    var results = "";
-     $(xmldata).find("pod").each(function() {
+// function searchWolframAlpha(full_string, query_string, activeEl) {
+//     var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
+//     url = url.replace("#query#", query_string);
+//     // console.log(url)
+//         xmlhttp = new XMLHttpRequest();
+//         xmlhttp.open("GET",url,false);  // the third param sets async=false
+//         xmlhttp.send();
+//         xmldata = xmlhttp.responseXML;
+//     var results = "";
+//      $(xmldata).find("pod").each(function() {
 
-        if($(this).attr('id') == "Result"){
-            var result = $(this)[0].childNodes[1]
-            var result = $(result).text();
-            // result = result.replace(/<(?:.|\n)*?>/gm, '');
+//         if($(this).attr('id') == "Result"){
+//             var result = $(this)[0].childNodes[1]
+//             var result = $(result).text();
+//             // result = result.replace(/<(?:.|\n)*?>/gm, '');
 
-            // console.log(results)
-            DisplayWolframResults(full_string, query_string, result, activeEl)
+//             // console.log(results)
+//             DisplayWolframResults(full_string, query_string, result, activeEl)
 
-        }
-     })
-     xmldata = "";
-     xmlhttp = "";
+//         }
+//      })
+//      xmldata = "";
+//      xmlhttp = "";
      
 
-}
-function DisplayWolframResults(full_string, query, result, activeEl) {
-    // console.log(" IMHERE!!")
+// }
+// function DisplayWolframResults(full_string, query, result, activeEl) {
+//     full_string = full_string.replace("@" + query + "@", result)
+//     console.log(full_string)
 
-    // console.log(full_string)
-    // console.log(query)
-    // console.log(result)
-    full_string = full_string.replace("@" + query + "@", result)
-    console.log(full_string)
-
-    // if(node_location == 0) {
-            // activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.replace("@" + query + "@", result);
-    // } else {
-    full_string = full_string.replace(/[\r\n]/g, '');
-    var string_new = full_string.replace("@" + query + "@", result);    
+//     // if(node_location == 0) {
+//             // activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.replace("@" + query + "@", result);
+//     // } else {
+//     full_string = full_string.replace(/[\r\n]/g, '');
+//     var string_new = full_string.replace("@" + query + "@", result);    
     
 
-    // console.log(string_new)
-    activeEl.childNodes[node_location].innerText = string_new;
-    console.log(activeEl.childNodes[node_location].innerText)
-    // }
-    // global_response = result;
+//     // console.log(string_new)
+//     activeEl.childNodes[node_location].innerText = string_new;
+//     console.log(activeEl.childNodes[node_location].innerText)
+//     // }
+//     // global_response = result;
 
-}
-function processIt(string_passed, elem, phrases) {
-    phrases = [];
+// }
+function FindMatchesFromDicAndDisplayResults(string_passed, phrases, activeEl) {
+    var local_phrases = [];
     chrome.extension.sendRequest({method: "getLocalStorage", key: "array"}, function(response) {
-        // console.log("LAODED MY SHIT BACK")
         var dictionary = response.array.split(",")
-        // console.log(dictionary)
-        
         //ignore spaces
         if(/\s+$/.test(string_passed)) {
             string_passed = string_passed.substr(0, string_passed.length -1);    
 
         }
+        console.log(string_passed)
         dictionary.forEach(function(phrase) {
             if(phrase.toLowerCase().indexOf(string_passed.toLowerCase()) == 0) {
-                if(phrase.length == string_passed.length) {
-                    //do nothing
-                } else {
-                    general_location = string_inputed.toLowerCase().lastIndexOf(string_passed.toLowerCase());
-                    // console.log("GENERAL LOCATION" + "  " + general_location);
-                    phrases.push(phrase);    
+                if(phrase.length != string_passed.length) {
+                console.log("match at " + phrase)
+
+                    first_match_index = string_inputed.toLowerCase().lastIndexOf(string_passed.toLowerCase());
+                    console.log(first_match_index)
+                    local_phrases.push(phrase);    
                 }
+
             }
         })
-        DisplayResults(phrases, elem);
 
-    }); 
+        DisplayResults(local_phrases, activeEl);
+
+    })
 }
 
 function replaceShortCutWithInfo(analyzed_string, activeEl) {
@@ -266,19 +233,16 @@ function replaceShortCutWithInfo(analyzed_string, activeEl) {
             break;
     }
 
-    if(node_location == 0) {
-       var start = activeEl.firstChild.nodeValue.lastIndexOf(analyzed_string)
-       activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.substring(0, start) + " " + replacement;
-    } else {
-        var start = activeEl.childNodes[node_location].innerText.lastIndexOf(analyzed_string)
-        activeEl.childNodes[node_location].innerText = node_value.substring(0, start) + " " + replacement;    
-    }
-
+    var start = node.nodeValue.lastIndexOf(analyzed_string)
+    node.nodeValue = node.nodeValue.substring(0, start) + " " + replacement;
+    
 }
 function DisplayResults(results, elem) {
     var popup = document.getElementById("nuseir")
+    var elem = document.activeElement;
+
     if(popup) {
-         elem.removeChild(popup)   
+         node.parentElement.removeChild(popup)   
     }
     if(!results.length == 0) {
         var domDiv = document.createElement("div");
@@ -288,24 +252,27 @@ function DisplayResults(results, elem) {
         domDiv.style.height = "auto"
         domDiv.style.backgroundColor = "white"
         domDiv.style.border = "1px solid gray"
-        var appendingDiv = "<div><ul id='options', style='list-style-type: none; padding:8px; margin: 0; font-size: 1.2; font-style: sans-serif;' >";
+        var appendingDiv = "<div>"
+        + "<ul id='options', style='list-style-type: none; padding:8px; margin: 0; font-size: 1.2; font-style: sans-serif;' >";
         results.forEach(function(result) {
             appendingDiv = appendingDiv + "<li style='padding: 5px;'>" + result + "</li>"
         })
-        appendingDiv = appendingDiv + "</ul>"
+        appendingDiv = appendingDiv + "</ul></div>"
         domDiv.innerHTML = appendingDiv;
         
-        elem.appendChild(domDiv)    
+        node.parentElement.appendChild(domDiv)    
+        // chosen = 0;
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
-        $('#options li').bind('click', function() {
-            var text = getTextToAppend($(this).text(), elem.firstChild.nodeValue.substr(general_location, elem.firstChild.nodeValue.length -1 ))
-            node.nodeValue = node.nodeValue + text;
-            elem.removeChild(domDiv)
-        })
+
+        // $('#options li').bind('click', function() {
+        //     var text = getTextToAppend($(this).text(), elem.firstChild.nodeValue.substr(general_location, elem.firstChild.nodeValue.length -1 ))
+        //     node.nodeValue = node.nodeValue + text;
+        //     elem.removeChild(domDiv)
+        // })
     }
 }
 function getTextToAppend(full_autocomplete, text_written) {
-    return full_autocomplete.toLowerCase().slice(text_written.length);
+    return full_autocomplete.toLowerCase().slice(text_written.length + 1);
 
 }
 
