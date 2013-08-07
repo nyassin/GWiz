@@ -14,20 +14,7 @@ var xmldata = "";
 var xmlhttp = "";
 var last_word;
 var CaretMain;
-var shortcutsArray = [
-    "@date",
-    "@myname",
-    "@tftc",
-    "@wsig"
-]
-
-// chrome.extension.sendRequest({
-//     type: "popup_var",  In my extensions, because I could often be different types of reqeusts, I use a type variable to identify them 
-//     my_variable: dictionary
-
-//     /* Whatever variable you are trying to send */
-// });
-
+var shortcutsArray = [];
 
 
 $(new_elem).bind('keydown',function(e) {
@@ -52,8 +39,10 @@ $(new_elem).bind('keydown',function(e) {
                     }
                     node.nodeValue = node.nodeValue + text;
                     node.parentElement.removeChild(popup)
+                    putCaretToFrontPosition();
                     chosen = 0;
                     first_match_index = 0;
+                    
                 }
 
                 //IF ARROW UP
@@ -73,7 +62,6 @@ $(new_elem).bind('keydown',function(e) {
                         chosen = 0;
                     }
                     return false;
-
                 }
         }   
     }
@@ -87,30 +75,37 @@ $(new_elem).bind('keyup',function(e) {
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
 
             CaretMain =document.getSelection();
-            console.log(CaretMain)
-            
+            node = CaretMain.baseNode
+            if(e.keyCode != 32 && CaretMain.baseOffset == node.nodeValue.length ) {
 
-            if(e.keyCode != 32) {
-
-                node = CaretMain.baseNode
                 string_inputed = node.nodeValue;
                 
                 var analyzed_string = getLastWord(string_inputed, activeEl);
-                if(!xmldata) {
-                    if($.inArray(analyzed_string, shortcutsArray) !== -1) {
-                        replaceShortCutWithInfo(analyzed_string, activeEl);
-                    } else {
-
-                        FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
-                    }
-                }
+                if (/\S/.test(analyzed_string)) {
+                    // string is not empty and not just whitespace
+                    updateShortcutsArray();
+                    if(!xmldata) {
+                        if($.inArray(analyzed_string, shortcutsArray) !== -1) {
+                            replaceShortCutWithInfo(analyzed_string, activeEl);
+                        } else {
+                            FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
+                        }
+                    }    
+                } 
             }
         
         }   
 })
-
+function updateShortcutsArray() {
+    chrome.extension.sendRequest({method: "getLocalStorage", key: "shortcuts"}, function(response) {
+        shortcutsArray = [];
+         var all_data = JSON.parse(response.array);
+         all_data.forEach(function(shortcut) {
+            shortcutsArray.push(shortcut.key)
+         })
+    })
+}
 function getLastWord(string_passed, activeEl) {
-    // console.log(string_passed)
     if(CaretMain.baseOffset != 0) {
         var string_passed = string_passed.substring(0, CaretMain.baseOffset)    
     }
@@ -121,67 +116,64 @@ function getLastWord(string_passed, activeEl) {
         var last_phrase = string_passed.substring(first_match_index);
         return last_phrase;
     } else {
-        //return last word
-        if(string_passed) {
-            var split_string =string_passed.split(" ");    
-            var last_word_extracted = split_string[split_string.length - 1]
-            if(last_word_extracted) {
-                last_word = last_word_extracted;
-                return last_word_extracted;
-            } else {
-                activeEl.removeChild(popup)
-                return "";
+        
+        var count = [];
+        count = string_passed.match(/@/g);
+        if(count) {
+            if(count.length == 2) {
+                var first = string_passed.indexOf('@');
+                var last = string_passed.lastIndexOf('@');
+
+                if(!xmlhttp) {
+                    searchWolframAlpha(string_passed, string_passed.substring(first + 1, last), activeEl);
+                }    
             }
-        } else {
-            return "";
         }
+        //return last word
+        var split_string =string_passed.split(" ");    
+        var last_word_extracted = split_string[split_string.length - 1]
+        if(last_word_extracted) {
+            last_word = last_word_extracted;
+        } else {
+            activeEl.removeChild(popup)
+        }
+        return last_word_extracted;
     }
 }
 
-// function searchWolframAlpha(full_string, query_string, activeEl) {
-//     var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
-//     url = url.replace("#query#", query_string);
-//     // console.log(url)
-//         xmlhttp = new XMLHttpRequest();
-//         xmlhttp.open("GET",url,false);  // the third param sets async=false
-//         xmlhttp.send();
-//         xmldata = xmlhttp.responseXML;
-//     var results = "";
-//      $(xmldata).find("pod").each(function() {
+function searchWolframAlpha(full_string, query_string, activeEl) {
+    var url = "http://api.wolframalpha.com/v2/query?input=#query#&appid=WA98HE-2AT2K78RJ4"
+    url = url.replace("#query#", query_string);
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET",url,false);  // the third param sets async=false
+    xmlhttp.send();
+    xmldata = xmlhttp.responseXML;
+    var results = "";
+    var foundEl = false
+     $(xmldata).find("pod").each(function() {
+        if($(this).attr('id') == "Result"){
+            foundEl = $(this);
+        }
+     })
+     if(foundEl){
+            var result = foundEl[0].childNodes[1]
+            var result = $(result).text();
+            DisplayWolframResults(full_string, query_string, result)
+    } else {
+            DisplayWolframResults(full_string, query_string, "No Results Found")
+    }
+     xmldata = "";
+     xmlhttp = "";
+}
 
-//         if($(this).attr('id') == "Result"){
-//             var result = $(this)[0].childNodes[1]
-//             var result = $(result).text();
-//             // result = result.replace(/<(?:.|\n)*?>/gm, '');
-
-//             // console.log(results)
-//             DisplayWolframResults(full_string, query_string, result, activeEl)
-
-//         }
-//      })
-//      xmldata = "";
-//      xmlhttp = "";
-     
-
-// }
-// function DisplayWolframResults(full_string, query, result, activeEl) {
-//     full_string = full_string.replace("@" + query + "@", result)
-//     console.log(full_string)
-
-//     // if(node_location == 0) {
-//             // activeEl.firstChild.nodeValue = activeEl.firstChild.nodeValue.replace("@" + query + "@", result);
-//     // } else {
-//     full_string = full_string.replace(/[\r\n]/g, '');
-//     var string_new = full_string.replace("@" + query + "@", result);    
-    
-
-//     // console.log(string_new)
-//     activeEl.childNodes[node_location].innerText = string_new;
-//     console.log(activeEl.childNodes[node_location].innerText)
-//     // }
-//     // global_response = result;
-
-// }
+function DisplayWolframResults(full_string, query, result) {
+    full_string = full_string.replace("@" + query + "@", result)
+    console.log(full_string)
+    full_string = full_string.replace(/[\r\n]/g, '');
+    var string_new = full_string.replace("@" + query + "@", result);    
+    node.nodeValue = string_new;
+    putCaretToFrontPosition();
+}
 function FindMatchesFromDicAndDisplayResults(string_passed, phrases, activeEl) {
     var local_phrases = [];
     chrome.extension.sendRequest({method: "getLocalStorage", key: "array"}, function(response) {
@@ -212,29 +204,46 @@ function FindMatchesFromDicAndDisplayResults(string_passed, phrases, activeEl) {
 
 function replaceShortCutWithInfo(analyzed_string, activeEl) {
     
-    var replacement;
-    switch(analyzed_string) 
-    {
-        case "@date":
-            replacement = new Date();
-            var day = replacement.getUTCDate();
-            var month = replacement.getMonth();
-            var year = replacement.getFullYear();
-            replacement = month + "/" + day + "/" + year;
-            break;
-        case "@myname":
-            replacement = "Nuseir Yassin";
-            break;
-        case "@tftc":
-            replacement = "Too frat to care";
-            break;
-        case "@wsig":
-            replacement = "Personal Financier and Professional Philanthropist. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
-            break;
-    }
+    chrome.extension.sendRequest({method: "getLocalStorage", key: "shortcuts"}, function(response) {
 
-    var start = node.nodeValue.lastIndexOf(analyzed_string)
-    node.nodeValue = node.nodeValue.substring(0, start) + " " + replacement;
+        console.log("ARRAY OF SHORTCUTS")
+
+        var replacement;
+        var shortcuts = JSON.parse(response.array);
+        console.log(shortcuts)
+        shortcuts.forEach(function(shortcut){
+            if(shortcut.key == analyzed_string) {
+                replacement = shortcut.value;
+            }
+        })
+
+        var start = node.nodeValue.lastIndexOf(analyzed_string)
+        node.nodeValue = node.nodeValue.substring(0, start) + " " + replacement;
+        putCaretToFrontPosition();    
+        
+    })
+    
+    // switch(analyzed_string) 
+    // {
+    //     case "@date":
+    //         replacement = new Date();
+    //         var day = replacement.getUTCDate();
+    //         var month = replacement.getMonth();
+    //         var year = replacement.getFullYear();
+    //         replacement = month + "/" + day + "/" + year;
+    //         break;
+    //     case "@name":
+    //         replacement = "Nuseir Yassin";
+    //         break;
+    //     case "@tftc":
+    //         replacement = "Too frat to care";
+    //         break;
+    //     case "@wsig":
+    //         replacement = "Personal Financier and Professional Philanthropist. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
+    //         break;
+    // }
+
+    
     
 }
 function DisplayResults(results, elem) {
@@ -262,6 +271,7 @@ function DisplayResults(results, elem) {
         
         node.parentElement.appendChild(domDiv)    
         // chosen = 0;
+        
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
 
         // $('#options li').bind('click', function() {
@@ -272,10 +282,19 @@ function DisplayResults(results, elem) {
     }
 }
 function getTextToAppend(full_autocomplete, text_written) {
+    
     return full_autocomplete.toLowerCase().slice(text_written.length + 1);
 
 }
-
+function putCaretToFrontPosition() {
+    var selection = CaretMain;        
+    var range = document.createRange();
+    console.log(range)
+    range.selectNodeContents(node);
+    range.setStart(node, node.nodeValue.length);
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
 
 
 

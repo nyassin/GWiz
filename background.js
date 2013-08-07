@@ -5,7 +5,14 @@ function onRequest(request, sender, sendResponse) {
   // The number of matches is sent in the request - pass it to the
   // infobar.
   if (request.method == "getLocalStorage") {
-    sendResponse({array: localStorage['array']});
+      if(request.key == "array") {
+        sendResponse({array: localStorage['array']});    
+      }
+
+      if(request.key == "shortcuts") {
+       sendResponse({array: localStorage['shortcuts']});     
+      }
+    
 
   }
 

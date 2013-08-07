@@ -1,11 +1,11 @@
 {
-  "name" : "SandwichBar",
+  "name" : "GWiz",
   "version" : "1.0.1",
-  "description" : "Shows an infobar on pages which contain the word 'sandwich'",
+  "description" : "GWiz is an autocomplete feature for Gmail. You can define your most used terms and have them autocompleted by GWiz. You can also set shortcuts with pre-defined values. To make this more enticing, you can also search WolframAlpha directly from the compose page by enclosing your search term in '@' signs. Enjoy!",
   "background" : {
     "scripts": ["background.js"]
   },
-  "permissions" : [ "experimental", "contentSettings", "tabs"],
+  "permissions" : [ "contentSettings", "tabs"],
   "icons" : {
     "16" : "sandwich-16.png",
     "48" : "sandwich-48.png",
