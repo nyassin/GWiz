@@ -8,7 +8,6 @@ var node = [];
 var string_inputed = "";
 var chosen = 0;
 var first_match_index = 0;
-var node_value = "";
 var node_location = 0;
 var xmldata = "";
 var xmlhttp = "";
@@ -27,18 +26,12 @@ $(new_elem).bind('keydown',function(e) {
             if(popup) {
 
                 //IF ENTER
-                console.log(node_value)
                 if(e.keyCode == 13) {
                     e.preventDefault();
                     console.log("INDEX IS " + first_match_index + " and node value is : " + node.nodeValue)
                     var amount_to_slice = node.nodeValue.substring(first_match_index, node.nodeValue.length -1 );
                     console.log(amount_to_slice)
-                    if(first_match_index == 0) {
-
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  amount_to_slice)    
-                    } else {
-                        var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  node.nodeValue.substring(first_match_index, node.nodeValue.length -1))
-                    }
+                    var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  amount_to_slice);
                     node.nodeValue = node.nodeValue + text;
                     node.parentElement.removeChild(popup)
                     putCaretToFrontPosition();
@@ -76,8 +69,8 @@ $(new_elem).bind('keyup',function(e) {
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
             CaretMain =document.getSelection();
             node = CaretMain.baseNode
-            if(e.keyCode != 32 && CaretMain.baseOffset == node.nodeValue.length ) {
-
+            if(e.keyCode != 32 && node.nodeValue != null && CaretMain.baseOffset == node.nodeValue.length ) {
+                console.log("caret at length")
                 string_inputed = node.nodeValue;
                 
                 var analyzed_string = getLastWord(string_inputed, activeEl);
@@ -91,7 +84,30 @@ $(new_elem).bind('keyup',function(e) {
                             FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
                         }
                     }    
+                } else {
+                    //backspace issues
+                    if(popup) {
+                        node.parentElement.removeChild(popup)    
+                    }
+                    
+
                 } 
+            } else {
+                console.log("caret not at right position ")
+
+                if(popup && e.keyCode!=32) {
+                    console.log(e.keyCode)
+                    console.log("POP UP IS HERE")
+                    node.removeChild(popup)
+                    // if(node.parentElement.className == "Am aO9 Al editable LW-avf" || node.parentElement.className == "Am Al editable LW-avf") {
+                    //     console.log(node.parentElement)
+                    //     node.removeChild(popup)    
+                    // } else {
+                    //     node.removeChild(popup)
+                    // }
+                    
+                }
+
             }
         
         }   
@@ -222,29 +238,7 @@ function replaceShortCutWithInfo(analyzed_string, activeEl) {
         putCaretToFrontPosition();    
         
     })
-    
-    // switch(analyzed_string) 
-    // {
-    //     case "@date":
-    //         replacement = new Date();
-    //         var day = replacement.getUTCDate();
-    //         var month = replacement.getMonth();
-    //         var year = replacement.getFullYear();
-    //         replacement = month + "/" + day + "/" + year;
-    //         break;
-    //     case "@name":
-    //         replacement = "Nuseir Yassin";
-    //         break;
-    //     case "@tftc":
-    //         replacement = "Too frat to care";
-    //         break;
-    //     case "@wsig":
-    //         replacement = "Personal Financier and Professional Philanthropist. \n 159 W 25th Street, New York, NY 10001 \n Phone: 773.490.1404"
-    //         break;
-    // }
-
-    
-    
+        
 }
 function DisplayResults(results, elem) {
     var popup = document.getElementById("nuseir")
@@ -273,12 +267,18 @@ function DisplayResults(results, elem) {
         // chosen = 0;
         
         $('#nuseir ul')[0].children[chosen].style.backgroundColor = "#b3d4fc"
+        // $('#nuseir').attr('readonly', 'true');
 
-        // $('#options li').bind('click', function() {
-        //     var text = getTextToAppend($(this).text(), elem.firstChild.nodeValue.substr(general_location, elem.firstChild.nodeValue.length -1 ))
-        //     node.nodeValue = node.nodeValue + text;
-        //     elem.removeChild(domDiv)
-        // })
+        $('#options li').bind('click', function() {
+            var amount_to_slice = node.nodeValue.substring(first_match_index, node.nodeValue.length -1 );
+            var text = getTextToAppend($('#nuseir ul')[0].children[chosen].innerText,  amount_to_slice);    
+            node.nodeValue = node.nodeValue + text;
+            console.log(node)
+            node.parentElement.removeChild(popup)
+            putCaretToFrontPosition();
+            chosen = 0;
+            first_match_index = 0;  
+        })
     }
 }
 function getTextToAppend(full_autocomplete, text_written) {

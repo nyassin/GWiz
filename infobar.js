@@ -111,8 +111,8 @@ $(document).ready(function() {
 	function populatePhrases(mem,form) {
 		// var elem = document.getElementById('phrases_list');
 		var appendingDiv = "";
-		form.append("<input type='button' value='Add', class='add_phrase', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
-		form.append("<input type='submit' value='Save options', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
+		form.append("<input type='button' value='Add Phrase Field', class='add_phrase', style='padding: 10px 15px; font-size:1.3em; border: none;  background-color: #3d94d1; color: white; '>");
+		form.append("<input type='submit' value='Save options', style='padding: 10px 15px; font-size:1.3em; border: none; background-color: #3d94d1; color: white; '>");
 		mem.forEach(function(saying) {
 			var randLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
 			var uniqid = randLetter + Date.now();
@@ -122,8 +122,8 @@ $(document).ready(function() {
 	function populateShortcuts(shortcuts, form) {
 		var shortcuts = JSON.parse(shortcuts);
 		console.log(shortcuts)
-		form.append("<input type='button' value='Add Shortcuts', class='add_shortcut', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
-		form.append("<input type='submit' value='Save options', style='padding: 10px 15px; font-size:1.3em; border: none; margin: 10px; background-color: #3d94d1; color: white; '>");
+		form.append("<input type='button' value='Add Shortcut Field', class='add_shortcut', style='padding: 10px 15px; font-size:1.3em; border: none;  background-color: #3d94d1; color: white; '>");
+		form.append("<input type='submit' value='Save options', style='padding: 10px 15px; font-size:1.3em; border: none;background-color: #3d94d1; color: white; '>");
 		shortcuts.forEach(function(shortcut) {
 			var randLetter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
 			var uniqid = randLetter + Date.now();
