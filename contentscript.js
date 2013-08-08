@@ -17,6 +17,8 @@ var CaretMain;
 var shortcutsArray = [];
 
 
+chrome.extension.sendRequest({method: "initialize"});
+
 $(new_elem).bind('keydown',function(e) {
         var activeEl = document.activeElement;
         var popup = document.getElementById("nuseir")
@@ -71,9 +73,7 @@ $(new_elem).bind('keydown',function(e) {
 $(new_elem).bind('keyup',function(e) {
         var activeEl = document.activeElement;
         var popup = document.getElementById("nuseir")
-
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
-
             CaretMain =document.getSelection();
             node = CaretMain.baseNode
             if(e.keyCode != 32 && CaretMain.baseOffset == node.nodeValue.length ) {

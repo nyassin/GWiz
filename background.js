@@ -4,6 +4,9 @@
 function onRequest(request, sender, sendResponse) {
   // The number of matches is sent in the request - pass it to the
   // infobar.
+  if(request.method == "initialize") {
+    initialize();
+  }
   if (request.method == "getLocalStorage") {
       if(request.key == "array") {
         sendResponse({array: localStorage['array']});    
@@ -26,6 +29,27 @@ function onRequest(request, sender, sendResponse) {
 
   sendResponse({});
 };
+
+function initialize(request, sender, sendResponse) {
+    var dictionary = [
+      "Thank you for your email.",
+      "Looking forward to hearing back from you.",
+      "Hope this email finds you well",
+      "Have a good weekend!",
+      "Let me know if I could be of any more help",
+      "Dear Sir/Madam",
+      "Best Regards"
+  ]
+  var varsdic = [
+      {"key": "@testname", "value": "Nuseir Yassin"}
+  ]
+  if(!localStorage['array']) {
+      localStorage["array"] = dictionary;
+      localStorage["shortcuts"] = JSON.stringify(varsdic)
+  }
+  console.log("Initialized.")
+  sendResponse({});
+}
 
 // Listen for the content script to send a message to the background page.
 chrome.extension.onRequest.addListener(onRequest);
