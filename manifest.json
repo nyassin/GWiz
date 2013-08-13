@@ -1,6 +1,6 @@
 {
   "name" : "GWiz",
-  "version" : "1.0.2",
+  "version" : "1.0.3",
   "description" : "GWiz is a Chrome Extension for Gmail that helps you type email faster and smarter.",
   "background" : {
     "scripts": ["background.js"]
