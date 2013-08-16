@@ -19,7 +19,18 @@ var varsdic = [
 var new_dic = [];
 
 $(document).ready(function() {
-   // Handler for .ready() called.
+	//initialize power button 
+   	if(!localStorage["state"]) {
+   		localStorage["state"] = "on";
+   	}
+
+   	if(localStorage["state"] == "on") {
+		var holdyDiv = $('<div id="state", style="color: blue;">Disable</div>').attr('id', 'state');
+		holdyDiv.appendTo('body');
+   	} else {
+		var holdyDiv = $('<div id="state", style="color: blue;">Enable</div>').attr('id', 'state');
+		holdyDiv.appendTo('body');
+   	}
 	$('#shortcuts_wrapper').hide();
 	
 	var mem = localStorage["array"];
@@ -61,7 +72,7 @@ $(document).ready(function() {
 		});
 		localStorage["array"] = new_dic
 		new_dic = [];
-		form.append("<li>YOUR OPTIONS HAVE BEEN SAVED</li>")
+		form.append("<li>Your options have been saved.</li>")
 		return false;	
 	});
 	$('#shortcuts_form').submit(function() {
@@ -73,13 +84,11 @@ $(document).ready(function() {
   				new_dic.push({'key': key, 'value':val });	
   			}
 		});
-		console.log("ADDED THE FOLLOWING")
-		console.log(new_dic)
+		
 		new_dic = JSON.stringify(new_dic)
-		console.log(new_dic)
 		localStorage["shortcuts"] = new_dic
 		new_dic = [];
-		shortcuts_form.append("<li>YOUR OPTIONS HAVE BEEN SAVED</li>")
+		shortcuts_form.append("<li>Your options have been saved.</li>")
 		return false;	
 	});
 	$('.add_phrase').bind('click', function() {
@@ -102,6 +111,17 @@ $(document).ready(function() {
 		var id = $(this).attr('id');
 		var elem = document.getElementById(id)
 		elem.parentElement.remove(); 
+	})
+
+	$('#state').bind('click', function() {
+		if($(this)[0].innerText == "Disable") {
+			localStorage["state"] = "off";
+			$(this)[0].innerText = "Enable";
+		} else {
+			localStorage["state"] = "on";
+			$(this)[0].innerText = "Disable";
+		}
+		
 	})
 	function handler() {
 		var id = $(this).attr('id');

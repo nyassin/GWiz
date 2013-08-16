@@ -69,46 +69,37 @@ $(new_elem).bind('keyup',function(e) {
         if(activeEl.className == "Am aO9 Al editable LW-avf" || activeEl.className == "Am Al editable LW-avf") {
             CaretMain =document.getSelection();
             node = CaretMain.baseNode
-            if(e.keyCode != 32 && node.nodeValue != null && CaretMain.baseOffset == node.nodeValue.length ) {
-                console.log("caret at length")
-                string_inputed = node.nodeValue;
-                
-                var analyzed_string = getLastWord(string_inputed, activeEl);
-                if (/\S/.test(analyzed_string)) {
-                    // string is not empty and not just whitespace
-                    updateShortcutsArray();
-                    if(!xmldata) {
-                        if($.inArray(analyzed_string, shortcutsArray) !== -1) {
-                            replaceShortCutWithInfo(analyzed_string, activeEl);
+            chrome.extension.sendRequest({method: "getLocalStorage", key: "state"}, function(response) {
+                if(response == "on") {
+                    if(e.keyCode != 32 && node.nodeValue != null && CaretMain.baseOffset == node.nodeValue.length ) {
+                        console.log("caret at length")
+                        string_inputed = node.nodeValue;
+                  
+                        var analyzed_string = getLastWord(string_inputed, activeEl);
+                        if (/\S/.test(analyzed_string)) {
+                            // string is not empty and not just whitespace
+                            updateShortcutsArray();
+                            if(!xmldata) {
+                                if($.inArray(analyzed_string, shortcutsArray) !== -1) {
+                                    replaceShortCutWithInfo(analyzed_string, activeEl);
+                                } else {
+                                    FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
+                                }
+                            }    
                         } else {
-                            FindMatchesFromDicAndDisplayResults(analyzed_string, activeEl)   
+                            //backspace issues
+                            if(popup) {
+                                node.parentElement.removeChild(popup)    
+                            }
+                        } 
+                    } else {
+                        if(popup && e.keyCode!=32) {
+                            node.removeChild(popup)
                         }
-                    }    
-                } else {
-                    //backspace issues
-                    if(popup) {
-                        node.parentElement.removeChild(popup)    
+
                     }
-                    
-
-                } 
-            } else {
-                console.log("caret not at right position ")
-
-                if(popup && e.keyCode!=32) {
-                    console.log(e.keyCode)
-                    console.log("POP UP IS HERE")
-                    node.removeChild(popup)
-                    // if(node.parentElement.className == "Am aO9 Al editable LW-avf" || node.parentElement.className == "Am Al editable LW-avf") {
-                    //     console.log(node.parentElement)
-                    //     node.removeChild(popup)    
-                    // } else {
-                    //     node.removeChild(popup)
-                    // }
-                    
                 }
-
-            }
+            })
         
         }   
 })

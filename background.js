@@ -15,7 +15,10 @@ function onRequest(request, sender, sendResponse) {
       if(request.key == "shortcuts") {
        sendResponse({array: localStorage['shortcuts']});     
       }
-    
+      if(request.key == "state") {
+        console.log(localStorage['state'])
+       sendResponse(localStorage['state']);     
+      }
 
   }
 

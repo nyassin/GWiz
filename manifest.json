@@ -1,15 +1,15 @@
 {
   "name" : "GWiz",
-  "version" : "1.0.3",
-  "description" : "GWiz is a Chrome Extension for Gmail that helps you type email faster and smarter.",
+  "version" : "1.1.1",
+  "description" : "GWiz is an autocomplete for Gmail that helps you type emails faster and smarter.",
   "background" : {
     "scripts": ["background.js"]
   },
   "permissions" : [ "contentSettings"],
   "icons" : {
-    "16" : "sandwich-16.png",
-    "48" : "sandwich-48.png",
-    "128" : "sandwich-128.png"
+    "16" : "Gwiz-16.png",
+    "48" : "Gwiz-48.png",
+    "128": "Gwiz-128.png"
   },
   "content_scripts" : [
     {
@@ -20,7 +20,7 @@
     }
   ],
   "browser_action": {
-     "default_icon": "sandwich-128.png",
+     "default_icon": "Gwiz-128.png",
      "default_popup": "infobar.html"
   },
   "manifest_version": 2
